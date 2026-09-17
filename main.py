@@ -174,3 +174,9 @@ fig5 = px.box(df[df["장르"].isin(big)], x="장르", y="total_audi", points="ou
               hover_name="movieNm")
 st.plotly_chart(fig5, width="stretch")
 st.caption("이 그래프로 알 수 있는 것: (한 문장으로 적어 보세요)")
+# ── 그래프 6. 첫 주 관객을 점 크기로 (버블) ──
+st.header("6. 첫 주 관객을 점 크기로 (버블)")
+fig6 = px.scatter(df, x="first_scrn", y="total_audi", color="장르",
+                  size="first_week_audi", size_max=40, hover_name="movieNm")
+st.plotly_chart(fig6, width="stretch")
+st.caption("이 그래프로 알 수 있는 것: (한 문장으로 적어 보세요)")
