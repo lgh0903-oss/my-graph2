@@ -75,13 +75,11 @@ try:
         "💡 이 그래프로 알 수 있는 것: "
         "1년간 박스오피스 10위권에 든 영화가 어떤 장르에 많이 분포했는지 한눈에 확인할 수 있습니다."
     )
-
-except Exception as e:
-    st.error("데이터를 불러오는 중 문제가 발생했습니다.")
-    st.write("오류 내용:", e)
 # ── 그래프 2. 장르 안의 영화 (트리맵) ──
 st.header("2. 장르 안의 영화 (트리맵)")
 fig2 = px.treemap(df, path=["장르", "movieNm"], values="total_audi",
                   hover_data=["total_audi"])
 st.plotly_chart(fig2, width="stretch")
 st.caption("이 그래프로 알 수 있는 것: (한 문장으로 적어 보세요)")
+
+  
