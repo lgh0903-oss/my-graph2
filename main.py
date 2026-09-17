@@ -166,3 +166,11 @@ fig4 = px.scatter(df, x="first_scrn", y="total_audi", color="장르",
                   hover_name="movieNm")
 st.plotly_chart(fig4, width="stretch")
 st.caption("이 그래프로 알 수 있는 것: (한 문장으로 적어 보세요)")
+# ── 그래프 5. 장르별 총 관객 (박스플롯) ──
+st.header("5. 장르별 총 관객 (박스플롯)")
+big = df["장르"].value_counts()
+big = big[big >= 10].index
+fig5 = px.box(df[df["장르"].isin(big)], x="장르", y="total_audi", points="outliers",
+              hover_name="movieNm")
+st.plotly_chart(fig5, width="stretch")
+st.caption("이 그래프로 알 수 있는 것: (한 문장으로 적어 보세요)")
