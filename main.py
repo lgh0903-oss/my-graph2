@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -16,17 +17,14 @@ st.write("1년간 박스오피스 10위권에 든 영화 216편의 데이터를 
 # 데이터 주소
 DATA_URL = "https://raw.githubusercontent.com/greatsong/modudata/main/data/kobis_movies.csv"
 
+
 # 데이터 불러오기
 @st.cache_data
 def load_data():
     df = pd.read_csv(DATA_URL)
-    return df
 
-try:
-    df = load_data()
-
-    # 장르가 여러 개 적힌 경우 첫 번째 장르만 사용
-    df["genre_first"] = (
+    # 장르가 여러 개 적혀 있는 경우 첫 번째 장르만 사용
+    df["장르"] = (
         df["genre"]
         .fillna("미상")
         .astype(str)
@@ -35,51 +33,119 @@ try:
         .str.strip()
     )
 
-    # 장르별 영화 편수
+    # 숫자 데이터는 숫자형으로 변환
+    number_columns = [
+        "first_scrn",
+        "first_show",
+        "first_week_audi",
+        "total_audi",
+        "days_in_top10"
+    ]
+
+    for column in number_columns:
+        if column in df.columns:
+            df[column] = pd.to_numeric(df[column], errors="coerce").fillna(0)
+
+    return df
+
+
+try:
+    df = load_data()
+
+    # ---------------------------------------
+    # 그래프 1. 장르별 영화 편수
+    # ---------------------------------------
+    st.divider()
+    st.subheader("📊 그래프 1. 장르별 영화 편수")
+
     genre_count = (
-        df["genre_first"]
+        df["장르"]
         .value_counts()
         .reset_index()
     )
 
     genre_count.columns = ["장르", "영화 편수"]
 
-    # 그래프 구역
-    st.divider()
-    st.subheader("📊 그래프 1. 장르별 영화 편수")
-
-    fig = px.pie(
+    fig1 = px.pie(
         genre_count,
         names="장르",
         values="영화 편수",
         hole=0.55,
-        title="장르별 영화 편수 분포",
+        title="장르별 영화 편수 분포"
     )
 
-    fig.update_traces(
+    fig1.update_traces(
         textinfo="percent",
-        hovertemplate="<b>%{label}</b><br>"
-                      "영화 편수: %{value}편<br>"
-                      "비율: %{percent}<extra></extra>"
+        hovertemplate=(
+            "<b>%{label}</b><br>"
+            "영화 편수: %{value}편<br>"
+            "비율: %{percent}<extra></extra>"
+        )
     )
 
-    fig.update_layout(
+    fig1.update_layout(
         height=500,
         legend_title="장르"
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig1, use_container_width=True)
 
     # 그래프로 알 수 있는 것
     st.info(
         "💡 이 그래프로 알 수 있는 것: "
-        "1년간 박스오피스 10위권에 든 영화가 어떤 장르에 많이 분포했는지 한눈에 확인할 수 있습니다."
+        "1년간 박스오피스 10위권에 든 영화가 어떤 장르에 많이 분포했는지 확인할 수 있습니다."
     )
 
+
+    # ---------------------------------------
+    # 그래프 2. 장르별 총 관객 트리맵
+    # ---------------------------------------
+    st.divider()
+    st.subheader("📊 그래프 2. 장르별 총 관객 분포")
+
+    # 영화명이나 장르가 비어 있는 행 제거
+    treemap_df = df[
+        (df["장르"].notna()) &
+        (df["movieNm"].notna()) &
+        (df["movieNm"].astype(str).str.strip() != "")
+    ].copy()
+
+    # 총 관객수가 0보다 큰 영화만 사용
+    treemap_df = treemap_df[treemap_df["total_audi"] > 0]
+
+    fig2 = px.treemap(
+        treemap_df,
+        path=["장르", "movieNm"],
+        values="total_audi",
+        hover_data=["total_audi"],
+        title="장르별 영화의 총 관객 수"
+    )
+
+    fig2.update_traces(
+        hovertemplate=(
+            "<b>%{label}</b><br>"
+            "총 관객: %{value:,.0f}명"
+            "<extra></extra>"
+        )
+    )
+
+    fig2.update_layout(
+        height=650
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+
+    # 그래프로 알 수 있는 것
+    st.info(
+        "💡 이 그래프로 알 수 있는 것: "
+        "장르별로 어떤 영화가 많은 관객을 모았는지와 영화별 관객 규모의 차이를 한눈에 비교할 수 있습니다."
+    )
+
+
 except Exception as e:
-    st.error("데이터를 불러오는 중 문제가 발생했습니다.")
+    st.error("데이터를 불러오거나 그래프를 만드는 중 문제가 발생했습니다.")
     st.write("오류 내용:", e)
-    # ── 그래프 2. 장르 안의 영화 (트리맵) ──
+# ── 그래프 2. 장르 안의 영화 (트리맵) ──
 st.header("2. 장르 안의 영화 (트리맵)")
 fig2 = px.treemap(df, path=["장르", "movieNm"], values="total_audi",
                   hover_data=["total_audi"])
