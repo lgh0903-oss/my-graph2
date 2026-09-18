@@ -188,3 +188,61 @@ counted = (df.groupby(["대표국가", "장르"], as_index=False)
 fig7 = px.sunburst(counted, path=["대표국가", "장르"], values="편수")
 st.plotly_chart(fig7, width="stretch")
 st.caption("이 그래프로 알 수 있는 것: (한 문장으로 적어 보세요)")
+# ---------------------------------------------------------
+# 8. 개봉 첫 주 관객 수와 최종 관객 수의 관계
+# ---------------------------------------------------------
+
+st.header("8. 개봉 첫 주 관객 수와 최종 관객 수")
+st.subheader("개봉 첫 주 관객 수가 많을수록 최종 관객 수도 많은가?")
+
+# 필요한 데이터만 선택
+scatter_df = df[["movieNm", "first_week_audi", "total_audi"]].copy()
+
+# 숫자로 변환
+scatter_df["first_week_audi"] = pd.to_numeric(
+    scatter_df["first_week_audi"], errors="coerce"
+)
+scatter_df["total_audi"] = pd.to_numeric(
+    scatter_df["total_audi"], errors="coerce"
+)
+
+# 결측치 제거
+scatter_df = scatter_df.dropna(
+    subset=["first_week_audi", "total_audi"]
+)
+
+# 산점도
+fig8 = px.scatter(
+    scatter_df,
+    x="first_week_audi",
+    y="total_audi",
+    hover_name="movieNm",
+    labels={
+        "first_week_audi": "개봉 첫 주 관객 수",
+        "total_audi": "최종 관객 수"
+    },
+    title="개봉 첫 주 관객 수와 최종 관객 수의 관계"
+)
+
+# 추세선 추가
+fig8.update_traces(
+    marker=dict(size=8, opacity=0.7)
+)
+
+# 그래프 표시
+st.plotly_chart(fig8, use_container_width=True)
+
+# 상관계수 계산
+correlation = scatter_df["first_week_audi"].corr(
+    scatter_df["total_audi"]
+)
+
+st.info(
+    f"💡 개봉 첫 주 관객 수와 최종 관객 수의 상관계수는 "
+    f"**{correlation:.2f}**입니다."
+)
+
+st.write(
+    "이 그래프를 통해 개봉 첫 주 관객 수와 최종 관객 수 사이에 "
+    "어떤 관계가 있는지 확인할 수 있습니다."
+)
